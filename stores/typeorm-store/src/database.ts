@@ -21,6 +21,7 @@ export class TypeormDatabase {
     private lastCommitted = -1
 
     constructor(name: string, options?: TypeormDatabaseOptions) {
+        assert(/^[a-z][a-z0-9_]*$/.test(name), `name '${name}' is invalid`)
         this.statusSchema = `${name}_status`
         this.isolationLevel = options?.isolationLevel || 'SERIALIZABLE'
     }
@@ -33,18 +34,18 @@ export class TypeormDatabase {
         let con = await createConnection(cfg)
         try {
             let height = await con.transaction('SERIALIZABLE', async em => {
-                await em.query(`CREATE SCHEMA IF NOT EXISTS ${this.statusSchema}`)
+                await em.query(`CREATE SCHEMA IF NOT EXISTS "${this.statusSchema}"`)
                 await em.query(`
-                    CREATE TABLE IF NOT EXISTS ${this.statusSchema}.status (
+                    CREATE TABLE IF NOT EXISTS "${this.statusSchema}".status (
                         id int primary key,
                         height int not null
                     )
                 `)
                 let status: {height: number}[] = await em.query(
-                    `SELECT height FROM ${this.statusSchema}.status WHERE id = 0`
+                    `SELECT height FROM "${this.statusSchema}".status WHERE id = 0`
                 )
                 if (status.length == 0) {
-                    await em.query(`INSERT INTO ${this.statusSchema}.status (id, height) VALUES (0, -1)`)
+                    await em.query(`INSERT INTO "${this.statusSchema}".status (id, height) VALUES (0, -1)`)
                     return -1
                 } else {
                     return status[0].height
@@ -114,7 +115,7 @@ export class TypeormDatabase {
         let tx = await createTransaction(con, this.isolationLevel)
         try {
             await tx.em.query(
-                `UPDATE ${this.statusSchema}.status SET height = $1 WHERE id = 0 AND height < $1`,
+                `UPDATE "${this.statusSchema}".status SET height = $1 WHERE id = 0 AND height < $1`,
                 [height]
             )
             // if (status[0].height >= height) {
