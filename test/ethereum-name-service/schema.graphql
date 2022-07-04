@@ -1,0 +1,147 @@
+type Domain @entity {
+  id: ID!               # The namehash of the name
+  name: String          # The human readable name, if known. Unknown portions replaced with hash in square brackets (eg, foo.[1234].eth)
+  labelName: String     # The human readable label name (imported from CSV), if known
+  labelhash: Bytes      # keccak256(labelName)
+  parent: Domain        # The namehash (id) of the parent name
+  subdomains: [Domain!]! @derivedFrom(field: "parent")  # Can count domains from length of array
+  resolvedAddress: Account # Address logged from current resolver, if any
+  owner: Account!
+  resolver: Resolver
+  ttl: BigInt
+  isMigrated: Boolean!
+  createdAt: BigInt!
+  events: [DomainEvent!]! @derivedFrom(field: "domain")
+}
+
+type DomainEvent @entity {
+  id: ID!
+  domain: Domain!
+  blockNumber: Int!
+  transactionID: Bytes!
+  kind: DomainEventKind!
+}
+
+union DomainEventKind = Transfer | NewOwner | NewResolver | NewTTL
+
+type Transfer {
+  owner: Account!
+}
+
+type NewOwner {
+  owner: Account!
+}
+
+type NewResolver {
+  resolver: Resolver!
+}
+
+type NewTTL {
+  ttl: BigInt!
+}
+
+type Account @entity {
+  id: ID!
+  domains: [Domain!]! @derivedFrom(field: "owner")
+  registrations: [Registration!] @derivedFrom(field: "registrant")
+}
+
+type Registration @entity {
+  id: ID!
+  domain: Domain
+  registrationDate: BigInt!
+  expiryDate: BigInt!
+  cost: BigInt
+  registrant: Account!
+  labelName: String
+  events: [RegistrationEvent!]! @derivedFrom(field: "registration")
+}
+
+type RegistrationEvent @entity {
+  id: ID!
+  registration: Registration!
+  blockNumber: Int!
+  transactionID: Bytes!
+  kind: RegistrationEventKind!
+}
+
+union RegistrationEventKind = NameRegistered | NameRenewed | NameTransferred
+
+type NameRegistered {
+  registrant: Account!
+  expiryDate: BigInt!
+}
+
+type NameRenewed {
+  expiryDate: BigInt!
+}
+
+type NameTransferred {
+  newOwner: Account!
+}
+
+type Resolver @entity {
+  id: ID!                   # Concatenation of resolver address and namehash
+  domain: Domain
+  address: Bytes!           # Address of resolver contract
+
+  addr: Account             # Current value of addr record (per events)
+  contentHash: Bytes        # Content hash, in binary format.
+  texts: [String!]          # Set of observed text record keys
+  coinTypes: [BigInt!]      # Set of observed SLIP-44 coin types
+  events: [ResolverEvent!]! @derivedFrom(field: "resolver")
+}
+
+type ResolverEvent @entity {
+  id: ID!                   # Concatenation of block number and log ID
+  resolver: Resolver!       # Used to derive relationships to Resolvers
+  blockNumber: Int!
+  transactionID: Bytes!
+  kind: ResolverEventKind!
+}
+
+union ResolverEventKind = AddrChanged | MulticoinAddrChanged | NameChanged | AbiChanged |
+                          PubkeyChanged | TextChanged | ContenthashChanged | InterfaceChanged |
+                          AuthorisationChanged
+
+type AddrChanged {
+  addr: Account!
+}
+
+type MulticoinAddrChanged {
+  coinType: BigInt!
+  mcAddr: Bytes!
+}
+
+type NameChanged {
+  name: String!
+}
+
+type AbiChanged {
+  contentType: BigInt!
+}
+
+type PubkeyChanged {
+  x: Bytes!
+  y: Bytes!
+}
+
+type TextChanged {
+  key: String!
+  value: String
+}
+
+type ContenthashChanged {
+  hash: Bytes!
+}
+
+type InterfaceChanged {
+  interfaceID: Bytes!
+  implementer: Bytes!
+}
+
+type AuthorisationChanged {
+  owner: Bytes!
+  target: Bytes!
+  isAuthorized: Boolean!
+}

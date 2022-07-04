@@ -2,7 +2,7 @@
  * This is the main configuration file for Rush.
  * For full documentation, please see https://rushjs.io
  */
-{
+ {
   "$schema": "https://developer.microsoft.com/json-schemas/rush/v5/rush.schema.json",
 
   /**
@@ -458,6 +458,12 @@
       "versionPolicyName": "public"
     },
     {
+      "packageName": "@subsquid/eth-processor",
+      "projectFolder": "eth-processor",
+      "shouldPublish": true,
+      "versionPolicyName": "public"
+    },
+    {
       "packageName": "@subsquid/graphql-server",
       "projectFolder": "graphql-server",
       "shouldPublish": true,
@@ -662,6 +668,11 @@
     {
       "packageName": "moonsama-erc721",
       "projectFolder": "test/moonsama-erc721",
+      "shouldPublish": false
+    },
+    {
+      "packageName": "ethereum-name-service",
+      "projectFolder": "test/ethereum-name-service",
       "shouldPublish": false
     },
     {

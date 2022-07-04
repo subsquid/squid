@@ -1,0 +1,27 @@
+{
+  "name": "@subsquid/eth-processor",
+  "version": "0.0.0",
+  "description": "Data fetcher and mappings executor for ethereum chain",
+  "license": "GPL-3.0-or-later",
+  "repository": "git@github.com:subsquid/squid.git",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "lib",
+    "src"
+  ],
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "rm -rf lib && tsc"
+  },
+  "dependencies": {
+    "@subsquid/logger": "^0.0.1",
+    "@subsquid/util-internal": "^0.0.0",
+    "axios": "^0.27.2"
+  },
+  "devDependencies": {
+    "@types/node": "^16.11.22",
+    "typescript": "~4.5.5"
+  }
+}
